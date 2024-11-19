@@ -15,19 +15,32 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
     // Open ChatGPT in a new tab
     chrome.tabs.create({ url: chatGPTUrl }, (newTab) => {
-      // After ChatGPT tab is loaded, paste the text
-      chrome.scripting.executeScript({
-        target: { tabId: newTab.id },
-        func: (text) => {
-          const inputField = document.querySelector("textarea");
-          if (inputField) {
-            inputField.value = text;
-            inputField.focus();
-          } else {
-            console.error("ChatGPT prompt not found.");
-          }
-        },
-        args: [selectedText],
+      // Wait for the new tab to load before injecting the script
+      chrome.tabs.onUpdated.addListener(function listener(tabId, changeInfo) {
+        if (tabId === newTab.id && changeInfo.status === "complete") {
+          // Inject the script to paste text into the ChatGPT input field
+          chrome.scripting.executeScript({
+            target: { tabId: newTab.id },
+            func: (text) => {
+              const tryPaste = () => {
+                const inputField = document.querySelector("textarea");
+                if (inputField) {
+                  inputField.value = text; // Paste the text
+                  inputField.focus();     // Focus the input field
+                  inputField.dispatchEvent(new Event('input', { bubbles: true })); // Trigger input event
+                } else {
+                  // Retry if the field isn't ready yet
+                  setTimeout(tryPaste, 100);
+                }
+              };
+              tryPaste();
+            },
+            args: [selectedText],
+          });
+
+          // Remove the listener to avoid multiple triggers
+          chrome.tabs.onUpdated.removeListener(listener);
+        }
       });
     });
   }
