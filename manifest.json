@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Search Selected Text",
-  "version": "1.1",
-  "description": "Right-click to search selected text in a new tab.",
-  "permissions": ["contextMenus", "tabs"],
+  "name": "Copy Selected Text to ChatGPT",
+  "version": "1.2",
+  "description": "Right-click to send selected text to ChatGPT's prompt.",
+  "permissions": ["contextMenus", "tabs", "scripting"],
   "background": {
     "service_worker": "background.js"
   },
-  "host_permissions": ["<all_urls>"]
+  "host_permissions": ["https://chat.openai.com/*"]
 }
